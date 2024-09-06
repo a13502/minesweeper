@@ -8,6 +8,8 @@
 using std::cout;
 using std::vector;
 
+int win_flag;
+
 //structure for board
 struct board                                  //i->   j^
 {
@@ -115,6 +117,7 @@ int main()
     place_mines(real);
     //display(real);
     cout<<"lets playy!"<<std::endl;
+    win_flag = 0;
     display(my);     // -------------------------temp
     play(my, real);
     //cout<< realboard.boards[1][2];
@@ -126,6 +129,42 @@ void play(board *my, board *real)
     //input
 
     board myboard = *my;
+    board realboard = *real;
+    char copyboard[SIDE][SIDE];
+    
+    for (int i = 0; i < SIDE; ++i) 
+        for (int j = 0; j < SIDE; ++j) 
+            copyboard[i][j] = realboard.boards[i][j];
+
+    //if whole board is solved
+    for(int i = 0; i <= SIDE; i++)
+            for(int j = 0; j <= SIDE; j++)
+            {
+                copyboard[i][j] = realboard.boards[i][j];
+                if(i > SIDE - 2)
+                    copyboard[i][j] = '.';
+                if(j > SIDE - 2)
+                    copyboard[i][j] = '|';
+                if(copyboard[i][j] == '*')
+                        copyboard[i][j] = 'M';
+            }
+
+    
+            
+    int success_count = ((SIDE - 1) * (SIDE - 1)) - MINE;
+    int count = 0;
+    for(int i = 0; i < SIDE; i++)
+            for(int j = 0; j < SIDE; j++)
+                if(myboard.boards[i][j] != '*' && myboard.boards[i][j] != '.' && myboard.boards[i][j] != '|'&& myboard.boards[i][j] != '-' && myboard.boards[i][j] != 'M')
+                    count++;
+
+            
+    if(count == success_count || copyboard == myboard.boards)
+    {   
+        cout << "congratulations boo, U WONNN!!!"<<std::endl;
+        exit(0);
+    }
+
 
     cout<<"pick one:"<<std::endl<<"1. mark"<<std::endl<<"2. tip"<<std::endl;
 
@@ -137,12 +176,23 @@ void play(board *my, board *real)
     std::cin >> x>>y;
 
 
+    if (x > 4 ||  y > 4) 
+    {
+        *my = myboard; 
+        *real = realboard;
+        cout<<"out of range coordinates, please enter coordinates between 0 to 4"<<std::endl;
+        play(my, real);
+
+    }
+    
+
     switch(n)
     {
         case 1:
 
             myboard.boards[x][y] ='M';
             *my = myboard; 
+            *real = realboard;
             display(my);
             play(my, real);
             break;
@@ -150,7 +200,8 @@ void play(board *my, board *real)
             
             //cout<< real->boards[x][y];
             //returning the board to pointer for next operations;
-            *my = myboard;   
+            *my = myboard;  
+            *real = realboard; 
             display(my);
             bool check = checker(x,y, real);     //0 or 1
             decision(check, my, real, x, y);
@@ -208,7 +259,7 @@ void util(board *my,board *real, int x, int y)
     while(flag == 0)
     {   
             //char* neigbour = neighbours(i, j, real);
-                if(realboard.boards[i][j] != '*' && realboard.boards[i][j] != '.' && realboard.boards[i][j] != '|')
+                if(realboard.boards[i][j] != '*' && realboard.boards[i][j] != '.' && realboard.boards[i][j] != '|' )
                     myboard.boards[i][j] = realboard.boards[i][j];
                 else
                     flag = 1;
@@ -355,7 +406,7 @@ void util(board *my,board *real, int x, int y)
 
 
     *my = myboard;
-    display(my);
+    //display(my);
 }
 
 void addnums(board *real,int mines[][2])
@@ -435,16 +486,11 @@ vector<vector<int>> revealmarked(board *real,board *my)
                         myboard.boards[i][j] = realboard.boards[i][j];
                         miss.push_back({i, j}); 
                     }
-                    else
-                    {
-                        myboard.boards[i][j] = 'M';
-                    }
 
                 }
                 else
-                    myboard.boards[i][j] = realboard.boards[i][j];
-
-
+                    if(realboard.boards[i][j] == '*')
+                        myboard.boards[i][j] = realboard.boards[i][j];
 
     *my = myboard;
     *real = realboard;
